@@ -24,14 +24,14 @@ func NewFactory(maxOpen int, data map[string]string) *Factory {
 func (f *Factory) Open(name string) (*Handle, error) {
 	f.mu.Lock()
 	defer f.mu.Unlock()
-	if f.open >= f.maxOpen {
-		return nil, ErrLimit
-	}
-	f.open++
 	content, ok := f.data[name]
 	if !ok {
 		return nil, ErrNotFound
 	}
+	if f.open >= f.maxOpen {
+		return nil, ErrLimit
+	}
+	f.open++
 	return &Handle{factory: f, content: content}, nil
 }
 

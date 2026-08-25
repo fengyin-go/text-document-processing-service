@@ -9,8 +9,8 @@ func (s *Service) ReadTextBatch(factory *resource.Factory, names []string) ([]st
 		if err != nil {
 			return nil, err
 		}
-		defer handle.Close()
 		result = append(result, handle.Read())
+		handle.Close()
 	}
 	return result, nil
 }
