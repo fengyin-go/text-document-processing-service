@@ -6,5 +6,5 @@ import (
 )
 
 func (s *Service) StartTransformDispatch(ctx context.Context, runner *dispatch.Runner) <-chan struct{} {
-	return runner.Start(context.Background())
+	return runner.Start(ctx)
 }

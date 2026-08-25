@@ -24,12 +24,21 @@ func (r *Runner) Start(ctx context.Context) <-chan struct{} {
 	go func() {
 		defer close(done)
 		defer r.active.Add(-1)
-		workCtx := context.Background()
 		for attempt := 0; attempt < 5; attempt++ {
-			if err := r.op(workCtx); err == nil {
+			// 取消信号已到，停止重试，不再发起任何新的后端调用。
+			if ctx.Err() != nil {
 				return
 			}
-			time.Sleep(r.delay)
+			// 将可取消的 ctx 透传给操作，使其内部调用也能及时收住。
+			if err := r.op(ctx); err == nil {
+				return
+			}
+			// 重试间隔必须可被取消打断，否则关闭阶段会死等 delay 跑完整条重试链。
+			select {
+			case <-ctx.Done():
+				return
+			case <-time.After(r.delay):
+			}
 		}
 	}()
 	return done
